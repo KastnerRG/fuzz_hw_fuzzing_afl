@@ -5,6 +5,7 @@
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/Optional.h"
 #include "llvm/IR/CFG.h"
+#include "llvm/ADT/APInt.h"
 
 #include "CoverageMode.h"
 
@@ -446,8 +447,23 @@ struct HardwareInstrumentation {
     LoadInst *dfsanLabel = IRB.CreateLoad(shadowType, shadowPtr);
     SetNoSanitizeMetadata(dfsanLabel);
 
+    // count # of bits for APInt
+    const unsigned bits = cast<IntegerType>(shadowType)->getBitWidth();
+    llvm::APInt mask(bits, 0);
+    for (unsigned bit = 0; bit < bits; bit += 8) {
+      llvm::APInt elem(bits, 0x4); // 0x04 in low 8 bits
+      elem <<= bit;                // shift into each byte position
+      mask |= elem;
+    }
+
+
+    Value *maskVal = ConstantInt::get(shadowType, mask);
+    Value *colorOnly = IRB.CreateAnd(dfsanLabel, maskVal);
+    SetNoSanitizeMetadata(colorOnly);
+
+
     // Add the label to the coverage map.
-    addToCoverageMap(IRB, mapOffset, dfsanLabel, MergeTaint::Or);
+    addToCoverageMap(IRB, mapOffset, colorOnly, MergeTaint::Or);
   }
 
   // Adds toggle feedback.
