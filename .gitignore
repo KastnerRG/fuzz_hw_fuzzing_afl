@@ -1,3 +1,6 @@
+hw-fuzz-tests/*rtl*
+hw-fuzz-tests/example*
+
 .test
 .test2
 .sync_tmp
