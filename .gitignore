@@ -1,4 +1,7 @@
 hw-fuzz-tests/*rtl*
+!hw-fuzz-tests/rtl/
+hw-fuzz-tests/rtl/build/
+hw-fuzz-tests/rtl/output/
 hw-fuzz-tests/example*
 
 .test
